@@ -1,0 +1,88 @@
+<div class="login-container">
+  <div class="login-card">
+    <div class="login-header">
+      <h1>Airline Management</h1>
+      <p>{{ isLogin ? 'Sign in to your account' : 'Create a new account' }}</p>
+    </div>
+
+    <div class="tabs">
+      <button 
+        [class.active]="isLogin" 
+        (click)="toggleMode()"
+        data-testid="login-tab">
+        Login
+      </button>
+      <button 
+        [class.active]="!isLogin" 
+        (click)="toggleMode()"
+        data-testid="register-tab">
+        Register
+      </button>
+    </div>
+
+    <form (ngSubmit)="onSubmit()" class="login-form" data-testid="auth-form">
+      <div class="form-group" *ngIf="!isLogin">
+        <label for="name">Full Name</label>
+        <input 
+          type="text" 
+          id="name" 
+          [(ngModel)]="name" 
+          name="name" 
+          required
+          data-testid="name-input">
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input 
+          type="email" 
+          id="email" 
+          [(ngModel)]="email" 
+          name="email" 
+          required
+          data-testid="email-input">
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input 
+          type="password" 
+          id="password" 
+          [(ngModel)]="password" 
+          name="password" 
+          required
+          data-testid="password-input">
+      </div>
+
+      <div class="form-group" *ngIf="!isLogin">
+        <label for="phoneNumber">Phone Number</label>
+        <input 
+          type="tel" 
+          id="phoneNumber" 
+          [(ngModel)]="phoneNumber" 
+          name="phoneNumber"
+          data-testid="phone-input">
+      </div>
+
+      <div class="form-group" *ngIf="!isLogin">
+        <label for="role">Role</label>
+        <select id="role" [(ngModel)]="role" name="role" data-testid="role-select">
+          <option value="PASSENGER">Passenger</option>
+          <option value="ADMIN">Admin</option>
+        </select>
+      </div>
+
+      <div class="error-message" *ngIf="error" data-testid="error-message">
+        {{ error }}
+      </div>
+
+      <button 
+        type="submit" 
+        class="submit-btn" 
+        [disabled]="loading"
+        data-testid="submit-button">
+        {{ loading ? 'Processing...' : (isLogin ? 'Login' : 'Register') }}
+      </button>
+    </form>
+  </div>
+</div>

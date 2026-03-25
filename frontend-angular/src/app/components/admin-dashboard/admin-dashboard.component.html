@@ -1,0 +1,107 @@
+<div class="dashboard" data-testid="admin-dashboard">
+  <div class="header">
+    <h1>Admin Dashboard</h1>
+    <div class="user-info">
+      <span data-testid="admin-name">{{ currentUser?.name }}</span>
+      <button (click)="logout()" class="logout-btn" data-testid="logout-button">Logout</button>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button (click)="openAddFlight()" class="add-btn" data-testid="add-flight-button">+ Add Flight</button>
+  </div>
+
+  <div class="flights-grid">
+    <div *ngFor="let flight of flights" class="flight-card" [attr.data-testid]="'flight-' + flight.id">
+      <div class="flight-header">
+        <h3>{{ flight.flightNumber }}</h3>
+        <span class="status">{{ flight.status }}</span>
+      </div>
+      <div class="flight-info">
+        <p><strong>Route:</strong> {{ flight.origin }} → {{ flight.destination }}</p>
+        <p><strong>Departure:</strong> {{ flight.departureTime | date:'short' }}</p>
+        <p><strong>Arrival:</strong> {{ flight.arrivalTime | date:'short' }}</p>
+        <p><strong>Price:</strong> ${{ flight.price }}</p>
+        <p><strong>Seats:</strong> {{ flight.availableSeats }}/{{ flight.totalSeats }}</p>
+      </div>
+      <div class="flight-actions">
+        <button (click)="editFlight(flight)" data-testid="edit-flight-button">Edit</button>
+        <button (click)="viewPassengers(flight)" data-testid="view-passengers-button">View Passengers</button>
+        <button (click)="deleteFlight(flight.id)" class="delete-btn" data-testid="delete-flight-button">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Flight Modal -->
+  <div *ngIf="showAddFlight" class="modal" data-testid="add-flight-modal">
+    <div class="modal-content">
+      <h2>Add New Flight</h2>
+      <form (ngSubmit)="saveFlight()">
+        <input type="text" [(ngModel)]="newFlight.flightNumber" name="flightNumber" placeholder="Flight Number" required data-testid="flight-number-input">
+        <input type="text" [(ngModel)]="newFlight.origin" name="origin" placeholder="Origin" required>
+        <input type="text" [(ngModel)]="newFlight.destination" name="destination" placeholder="Destination" required>
+        <input type="datetime-local" [(ngModel)]="newFlight.departureTime" name="departureTime" required>
+        <input type="datetime-local" [(ngModel)]="newFlight.arrivalTime" name="arrivalTime" required>
+        <input type="number" [(ngModel)]="newFlight.totalSeats" name="totalSeats" placeholder="Total Seats" required>
+        <input type="number" [(ngModel)]="newFlight.availableSeats" name="availableSeats" placeholder="Available Seats" required>
+        <input type="number" [(ngModel)]="newFlight.price" name="price" placeholder="Price" required>
+        <div class="modal-actions">
+          <button type="submit" data-testid="save-flight-button">Save</button>
+          <button type="button" (click)="closeModal()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Edit Flight Modal -->
+  <div *ngIf="showEditFlight && selectedFlight" class="modal" data-testid="edit-flight-modal">
+    <div class="modal-content">
+      <h2>Edit Flight</h2>
+      <form (ngSubmit)="updateFlight()">
+        <input type="text" [(ngModel)]="selectedFlight.flightNumber" name="flightNumber" required>
+        <input type="text" [(ngModel)]="selectedFlight.origin" name="origin" required>
+        <input type="text" [(ngModel)]="selectedFlight.destination" name="destination" required>
+        <input type="datetime-local" [(ngModel)]="selectedFlight.departureTime" name="departureTime" required>
+        <input type="datetime-local" [(ngModel)]="selectedFlight.arrivalTime" name="arrivalTime" required>
+        <input type="number" [(ngModel)]="selectedFlight.totalSeats" name="totalSeats" required>
+        <input type="number" [(ngModel)]="selectedFlight.availableSeats" name="availableSeats" required>
+        <input type="number" [(ngModel)]="selectedFlight.price" name="price" required>
+        <div class="modal-actions">
+          <button type="submit">Update</button>
+          <button type="button" (click)="closeModal()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Passengers Modal -->
+  <div *ngIf="showPassengers" class="modal" data-testid="passengers-modal">
+    <div class="modal-content">
+      <h2>Passengers for {{ selectedFlight?.flightNumber }}</h2>
+      <table *ngIf="passengers.length > 0">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Age</th>
+            <th>Gender</th>
+            <th>Seat</th>
+            <th>Email</th>
+            <th>Phone</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of passengers" data-testid="passenger-row">
+            <td>{{ p.name }}</td>
+            <td>{{ p.age }}</td>
+            <td>{{ p.gender }}</td>
+            <td>{{ p.seatNumber }}</td>
+            <td>{{ p.email }}</td>
+            <td>{{ p.phoneNumber }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <p *ngIf="passengers.length === 0">No passengers booked yet</p>
+      <button (click)="closeModal()">Close</button>
+    </div>
+  </div>
+</div>
