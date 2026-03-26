@@ -1,1 +1,152 @@
-<p>passenger-dashboard works!</p>
+<div class="dashboard" data-testid="passenger-dashboard">
+  <div class="header">
+    <h1>Book Your Flight</h1>
+    <div class="user-info">
+      <span data-testid="passenger-name">{{ currentUser?.name }}</span>
+      <button (click)="logout()" class="logout-btn" data-testid="logout-button">Logout</button>
+    </div>
+  </div>
+
+  <!-- Available Flights -->
+  <section class="section">
+    <h2>Available Flights</h2>
+    <div class="flights-grid">
+      <div *ngFor="let flight of flights" class="flight-card" [attr.data-testid]="'flight-' + flight.id">
+        <div class="flight-route">
+          <div class="city">{{ flight.origin }}</div>
+          <div class="arrow">→</div>
+          <div class="city">{{ flight.destination }}</div>
+        </div>
+        <div class="flight-number">{{ flight.flightNumber }}</div>
+        <div class="flight-details">
+          <div class="detail">
+            <span class="label">Departure</span>
+            <span class="value">{{ flight.departureTime | date:'short' }}</span>
+          </div>
+          <div class="detail">
+            <span class="label">Arrival</span>
+            <span class="value">{{ flight.arrivalTime | date:'short' }}</span>
+          </div>
+          <div class="detail">
+            <span class="label">Price</span>
+            <span class="value price">${{ flight.price }}</span>
+          </div>
+          <div class="detail">
+            <span class="label">Available Seats</span>
+            <span class="value">{{ flight.availableSeats }}</span>
+          </div>
+        </div>
+        <button (click)="bookFlight(flight)" class="book-btn" data-testid="book-flight-button">Book Now</button>
+      </div>
+    </div>
+    <p *ngIf="flights.length === 0" class="no-data">No flights available at the moment</p>
+  </section>
+
+  <!-- My Bookings -->
+  <section class="section">
+    <h2>My Bookings</h2>
+    <div class="bookings-list">
+      <div *ngFor="let booking of myBookings" class="booking-card" data-testid="booking-card">
+        <div class="booking-header">
+          <h3>{{ booking.flight.flightNumber }}</h3>
+          <span class="booking-ref">{{ booking.bookingReference }}</span>
+        </div>
+        <div class="booking-info">
+          <p><strong>Route:</strong> {{ booking.flight.origin }} → {{ booking.flight.destination }}</p>
+          <p><strong>Departure:</strong> {{ booking.flight.departureTime | date:'medium' }}</p>
+          <p><strong>Passengers:</strong> {{ booking.passengers.length }}</p>
+          <p><strong>Total Amount:</strong> ${{ booking.totalAmount }}</p>
+          <p><strong>Payment Status:</strong> 
+            <span [class.paid]="booking.paymentStatus === 'COMPLETED'" 
+                  [class.pending]="booking.paymentStatus === 'PENDING'">
+              {{ booking.paymentStatus }}
+            </span>
+          </p>
+        </div>
+        <div class="passengers-info">
+          <strong>Passengers:</strong>
+          <div *ngFor="let p of booking.passengers" class="passenger-item">
+            {{ p.name }} ({{ p.seatNumber }})
+          </div>
+        </div>
+      </div>
+    </div>
+    <p *ngIf="myBookings.length === 0" class="no-data">You have no bookings yet</p>
+  </section>
+
+  <!-- Booking Form Modal -->
+  <div *ngIf="showBookingForm" class="modal" data-testid="booking-form-modal">
+    <div class="modal-content">
+      <h2>Book Flight {{ selectedFlight?.flightNumber }}</h2>
+      <div class="selected-flight-info">
+        <p>{{ selectedFlight?.origin }} → {{ selectedFlight?.destination }}</p>
+        <p>Price per person: ${{ selectedFlight?.price }}</p>
+      </div>
+
+      <form (ngSubmit)="submitBooking()">
+        <div class="form-group">
+          <label>Number of Passengers</label>
+          <input 
+            type="number" 
+            [(ngModel)]="passengerCount" 
+            name="passengerCount" 
+            min="1" 
+            [max]="selectedFlight?.availableSeats || 1"
+            (change)="updatePassengerCount()"
+            data-testid="passenger-count-input">
+        </div>
+
+        <div *ngFor="let passenger of passengers; let i = index" class="passenger-form">
+          <h4>Passenger {{ i + 1 }}</h4>
+          <input type="text" [(ngModel)]="passenger.name" [name]="'name' + i" placeholder="Full Name" required data-testid="passenger-name-input">
+          <input type="number" [(ngModel)]="passenger.age" [name]="'age' + i" placeholder="Age" required>
+          <select [(ngModel)]="passenger.gender" [name]="'gender' + i" required>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+          </select>
+          <input type="email" [(ngModel)]="passenger.email" [name]="'email' + i" placeholder="Email" required>
+          <input type="tel" [(ngModel)]="passenger.phoneNumber" [name]="'phone' + i" placeholder="Phone Number" required>
+        </div>
+
+        <div class="total-amount">
+          <strong>Total Amount: ${{ (selectedFlight?.price || 0) * passengerCount }}</strong>
+        </div>
+
+        <div class="modal-actions">
+          <button type="submit" data-testid="submit-booking-button">Proceed to Payment</button>
+          <button type="button" (click)="closeModal()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Mock Payment Modal -->
+  <div *ngIf="showPayment" class="modal" data-testid="payment-modal">
+    <div class="modal-content payment-modal">
+      <h2>Mock Payment Gateway</h2>
+      <div class="payment-info">
+        <p><strong>Booking Reference:</strong> {{ currentBooking?.bookingReference }}</p>
+        <p><strong>Amount to Pay:</strong> ${{ currentBooking?.totalAmount }}</p>
+      </div>
+
+      <div class="payment-form">
+        <div class="card-info">
+          <p>This is a mock payment gateway for testing purposes.</p>
+          <div class="mock-card">
+            <div class="card-number">**** **** **** 1234</div>
+            <div class="card-details">
+              <span>Expiry: 12/25</span>
+              <span>CVV: ***</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button (click)="completePayment()" class="pay-btn" data-testid="complete-payment-button">Complete Payment</button>
+        <button (click)="closeModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
